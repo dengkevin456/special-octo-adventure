@@ -1,0 +1,2972 @@
+<!DOCTYPE html>
+<!-- This is based on DillingerLee's great template here:
+https://github.com/Team-Code/KA_Offline -->
+<html>
+ <head>
+    <title>Processing.JS inside Webpages: Template</title>
+</head>
+ <body>
+    <p align="center">
+	<!--This draws the Canvas on the webpage -->
+      <canvas id="mycanvas" width="600" height="600"></canvas>
+    </p>
+ </body>
+
+ <!-- Run all the JavaScript stuff -->
+ <!-- Include the processing.js library -->
+ <!-- See https://khanacademy.zendesk.com/hc/en-us/articles/202260404-What-parts-of-ProcessingJS-does-Khan-Academy-support- for differences -->
+ <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script>
+
+ <script>
+    var sketchProc = function(processingInstance) {
+     with (processingInstance) {
+        size(600, 600);
+        frameRate(60);
+
+        /**********
+ * The land of hope by dengkthatsme
+ * I (almost) completely changed the code because the older version has a lot of glitches.
+ * Credit to
+ *
+**********/
+angleMode = "DEGREES";
+
+var screen = "load";
+smooth();
+var keys = [];
+var bs = 30;
+var lvl = 0;
+var start1 = true;
+var clicked = false;
+var timer = 0;
+var titleXpos = 0;
+var titleXpos1 = 0;
+var titleXpos2 = 600;
+var angles = [0, 0, 0];
+var scales = 30;
+var x = 0;
+var y = 0;
+var shopTimer = 0;
+var money = 20;
+var start2 = true;
+var curEquipped = 0;
+var curSelected = 0;
+var clvl = 0;
+var moveTimer = 0;
+var transparency = 255;
+var player;
+var xPos = [0, 0, 0];
+var spaceCounts = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+var unlockedLevel = [true, false, false, false, false, false, false, false];
+var saveText = "";
+var editX = 0;
+var editY = 0;
+var blockSelected = "b";
+var d = 180 / Math.PI;
+var frameCount = frameCount * 180 / Math.PI;
+var testMap = [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+];
+var textActivated = {
+    name: false,
+    title: false,
+    username: false,
+};
+var howTrans = 0;
+var whereTo = -600;
+var moving = false;
+var howMessages = [
+    "1) Basic player movements\n\n1. Use Left/Right to move\n2. Use up to jump\n3. Left-click to shoot (if you can shoot)",
+    "2) Creating stages\n\n1. Click the create button\n2. Click to place it\n3. Right-click on (...) to have access\nto more blocks and\nwrite your name and the title.\n4. Press SPACE to get code and\npost it to T&T\n5. In a short time, your created level will\nbe in the custom levels.\n6. IMPORTANT, only put the player\n(red figure) ONE TIME!!!",
+    "3) Shopping\n\n1. Go to the shop\n2. Press RIGHT/LEFT to\nbrowse through items\n3. The more money you have, the\nmore items you can get.",
+];
+
+var tips = [
+    "If the angle of the player to the mouse\nis exactly 45 degrees, it will shoot\nthe bullet tothe maximum distance",
+    "You can jump in mid-air!",
+    "You could change the color of the background by\ntoggling the colors!",
+];
+
+var tip = tips[floor(random(tips.length))];
+
+var tipEnabled = false;
+
+var achievements = [
+    {
+        name: "Hot stuff!",
+        description: "Touched lava",
+        earned: false,
+        difficulty: "Easy",
+    },
+    {
+        name: "jumper",
+        description: "Jumped at least\none time",
+        earned: false,
+        difficulty: "Very easy",
+    },
+    {
+        name: "level creator",
+        description: "Successfully created a level",
+        earned: false,
+        difficulty: "Easy",
+    },
+    {
+        name: "postmortal",
+        description: "Died :(",
+        earned: false,
+        difficulty: "Very easy",
+    },
+    {
+        name: "shopper",
+        description: "Went to the shop\nand bought an item",
+        earned: false,
+        difficulty: "Very easy",
+    },
+    {
+        name: "swimmer",
+        description: "Swam in the water",
+        earned: false,
+        difficulty: "Medium",
+    },
+    {
+        name: "unlocked a level!",
+        description: "unlocked level 1 (duh!)",
+        earned: false,
+        difficulty: "Easy",
+    },
+
+];
+
+
+var Text = {
+    name: [],
+    title: [],
+    username: [],
+};
+
+var mapLength = 70;
+
+var t = "";
+var t2 = [];
+
+for (var i = 0; i < mapLength; i++) {
+    t += " ";
+}
+
+for (var i = 0; i < testMap.length; i++) {
+    testMap.splice(i, 1, t);
+}
+
+var cam = {
+    x: 0,
+    y: 0,
+};
+
+var stuff = {
+    message: " has made the achievement",
+};
+
+function objectButton(x, y, type, name) {
+    strokeWeight(2);
+    switch (type) {
+        case "@":
+            stroke(0);
+            fill(255, 0, 0);
+            rect(x, y, 30, 30);
+        break;
+        case "b":
+            stroke(0);
+            fill(194, 161, 119);
+            rect(x, y, 30, 30);
+        break;
+        case " ":
+            noFill();
+            stroke(0);
+            rect(x, y, 30, 30);
+        break;
+        case "p":
+            stroke(0);
+            fill(200 - Math.sin(frameCount) * 55, 200 - Math.cos(frameCount) * 55, 200 + Math.sin(frameCount) * 55);
+            rect(x, y, 30, 30);
+        break;
+        case "L":
+            stroke(0);
+            fill(255, 95, 0);
+            rect(x, y, 30, 30);
+        break;
+        case "s":
+            stroke(0);
+            fill(0);
+    triangle(x + 3, y + 30, x + 30 / 2, y, x + 30 - 3, y + 30);
+        break;
+        case "t":
+            stroke(0);
+            fill(255, 0, 255);
+            rect(x, y, 30, 30);
+        break;
+        case "#":
+            stroke(0);
+            fill(52, 196, 47);
+            rect(x, y, 30, 30);
+        break;
+        case "w":
+            stroke(0);
+            fill(0, 150, 255);
+            rect(x, y, 30, 30);
+        break;
+        case "i":
+            stroke(0);
+            fill(255);
+            rect(x, y, 30, 30);
+        break;
+        case "C":
+            pushMatrix();
+            translate(x, y);
+            rotate(atan2(mouseY - y, mouseX - x));
+            fill(90);
+            ellipse(0, 0, 30, 30);
+            rectMode(CENTER);
+            rect(17, 0, 30, 10);
+            rectMode(CORNER);
+            popMatrix();
+        break;
+    }
+    if (clicked && mouseX > x && mouseX < x + 30 && mouseY > y && mouseY < y + 30) {
+        blockSelected = type;
+    }
+    if (blockSelected === type) {
+        noFill();
+        strokeWeight(5);
+        stroke(255);
+        rect(x - 5, y - 5, 39, 39);
+    }
+}
+
+function rectCollide(obj1, obj2) {
+    return (obj1.x + obj1.w > obj2.x && obj1.x < obj2.w + obj2.x && obj1.y + obj1.h > obj2.y && obj1.y < obj2.y + obj2.h);
+}
+
+function circleCollide(obj1, obj2) {
+    return (obj1.x - obj1.w/2 > obj2.x && obj1.x + obj1.w/2 < obj2.x + obj2.w && obj1.y - obj1.w/2 > obj2.y && obj1.y + obj1.w/2 < obj2.y + obj2.h);
+}
+
+function showAchievement(achievement, timer) {
+    this.achievement = achievement;
+    this.timer = timer;
+    this.showed = false;
+    this.y = -50;
+    this.draw = function() {
+        if (this.timer < 205) {
+
+            fill(255, 255, 255, 150);
+            noStroke();
+            //rect(300, 0, 200, this.y);
+            fill(0);
+            textSize(25);
+            if (!this.showed) {
+                    text("Unknown" + stuff.message + "\n"+ this.achievement, 300, this.y - 25);
+            }
+            if (this.timer < 25) {
+                this.y = this.timer * 2;
+            }
+            else if (this.timer < 180) {
+                this.y = 50;
+            }
+            else {
+                this.y = (this.timer - 180) * -2 + 50;
+            }
+            this.timer++;
+            }
+
+
+    };
+}
+
+var popUp = new showAchievement(0, 205);
+
+function Particle(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.trans = 255;
+    this.draw = function() {
+        switch (this.type) {
+            case 1:
+                rectMode(CENTER);
+                fill(255, 125, 0, this.trans);
+                pushMatrix();
+                translate(this.x, this.y);
+                rotate(this.trans);
+                rect(0, 0, 5, 5);
+                popMatrix();
+                rectMode(CORNER);
+                this.y -= 3;
+                this.trans -= 3;
+            break;
+        }
+    };
+}
+
+var particles = [];
+
+function Pixel(goalX, goalY, color, type) {
+    this.goalX = goalX;
+    this.type = type;
+    this.goalY = goalY;
+    this.color = color;
+    this.m = random(0, 3);
+    this.angle = random(0, 15);
+    this.r = 1.5;
+    this.x = random(-500, 0) || random(600, 1100);
+    this.y = random(0, 600);
+    this.draw = function() {
+        noStroke();
+        pushMatrix();
+        translate(this.x, this.y);
+        rotate(this.angle);
+        fill(this.color);
+        rect(0, 0, 30, 30);
+        popMatrix();
+    };
+    this.update = function() {
+        this.theta = atan2(this.goalY - this.y, this.goalX - this.x);
+        this.angle = lerp(this.angle, Math.PI * 2, 0.015);
+        this.x  = lerp(this.x, this.goalX, 0.015);
+        this.y  = lerp(this.y, this.goalY, 0.015);
+    };
+}
+
+var pixels = [];
+
+var pixelMap = [
+    "--------------------",
+    "---b----b---bbbbb---",
+    "---b---b----b----b--",
+    "---b--b-----b-----b-",
+    "---b-b------b------b",
+    "---bb-------b------b",
+    "---b-b------b------b",
+    "---b--b-----b-----b-",
+    "---b---b----b----b--",
+    "---b----b---bbbbb---",
+    "--------------------",
+    "--------------------",
+    "bbbbbbbbbbbbbbbbbbb-",
+    "b--------b--------b-",
+    "b--bbb---b--bbb---b-",
+    "b--------b--------b-",
+    "bbbbbbbbbbbbbbbbbbb-",
+];
+
+function createPixel() {
+    pixels = [];
+    for (var col = 0; col < pixelMap.length; col++) {
+        for (var row = 0; row < pixelMap[col].length; row++) {
+            switch (pixelMap[col][row]) {
+                case "b":
+                    pixels.push(new Pixel(row * 30, col * 30, color(255, 0, 0), 1));
+                break;
+            }
+        }
+    }
+}
+
+function Bullet(x, y, sx, sy, type) {
+    this.x = x;
+    this.y = y;
+    this.w = 10;
+    this.sx = sx;
+    this.sy = sy;
+    this.speed = 1;
+    this.type = type;
+    this.shootTimer = 0;
+    this.grav = 0.2;
+    this.draw = function() {
+
+        switch (this.type) {
+            case "cannon":
+                pushMatrix();
+                translate(this.x, this.y);
+                fill(90);
+                ellipse(0, 0, this.w, this.w);
+                popMatrix();
+            break;
+            case "player":
+                pushMatrix();
+                translate(this.x, this.y);
+                fill(150);
+                ellipse(0, 0, this.w, this.w);
+                popMatrix();
+            break;
+        }
+    };
+    this.update = function() {
+        this.x += this.speed * this.sx;
+        this.y += this.speed * this.sy;
+        if (this.type === "player") {
+            this.sy += this.grav;
+        }
+    };
+
+    this.collide = function(arr) {
+        if (circleCollide(this, arr[i])) {
+           this.x = 10000;
+        }
+    };
+}
+
+var bullets = [];
+
+
+function Over(x, y, w, h) {
+    return (mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h);
+}
+
+function lock(x, y) {
+
+    noStroke();
+    fill(135);
+    rect(x, y, 30, 25);
+    fill(0);
+    ellipse(x + 15, y + 10, 8, 8);
+    triangle(x + 15, y + 10, x + 10, y + 20, x + 20, y + 20);
+    stroke(135);
+    noFill();
+    arc(x + 15, y, 16, 18, 181, 360);
+}
+
+var players = [
+    {
+        name: "Regular",
+        description: "Nothing special, just regular\nyou know?",
+        x: 0,
+        y: 0,
+        ox: 0,
+        oy: 0,
+        w: bs,
+        h: bs,
+        price: 0,
+        haveBought: true,
+        canShoot: false,
+        jumpV: -10,
+        origJumps: 1,
+        jumps: 1,
+        health: 100,
+        origHealth: 100,
+        vx: 0,
+        vy: 0,
+        speed: 0.5,
+        maxSpeed: 3,
+        swimTimer: 200,
+        origswimTimer: 200,
+        draw: function() {
+            pushMatrix();
+            noStroke();
+            translate(300, 300);
+            fill(255, 0, 0);
+            rect(0, 0, 30, 30);
+            popMatrix();
+        },
+        display: function() {
+            pushMatrix();
+            translate(this.x, this.y);
+            noStroke();
+            fill(255, 0, 0);
+            rect(0, 0, this.w, this.h);
+            popMatrix();
+        }
+    },
+    {
+        name: "Flash",
+        description: "Moves very, very fast",
+        x: 0,
+        y: 0,
+        ox: 0,
+        oy: 0,
+        w: bs,
+        h: bs,
+        price: 0,
+        haveBought: false,
+        jumpV: -10,
+        origJumps: 1,
+        jumps: 1,
+        health: 100,
+        canShoot: false,
+        origHealth: 100,
+        vx: 0,
+        vy: 0,
+        speed: 8,
+        maxSpeed: 14,
+        swimTimer: 200,
+        origswimTimer: 200,
+        draw: function() {
+            pushMatrix();
+            noStroke();
+            translate(300, 300);
+            fill(255, 62 + sin(frameCount) * 62, 0);
+            rect(0, 0, 30, 30);
+            popMatrix();
+        },
+        display: function() {
+            pushMatrix();
+            translate(this.x, this.y);
+            noStroke();
+            fill(255, 62 + sin(frameCount) * 62, 0);
+            rect(0, 0, this.w, this.h);
+            popMatrix();
+        }
+    },
+    {
+        name: "Basic shooter",
+        description: "Can shoot, that's all",
+        x: 0,
+        y: 0,
+        ox: 0,
+        oy: 0,
+        w: bs,
+        h: bs,
+        price: 15,
+        haveBought: false,
+        canShoot: true,
+        reloadSpeed: 0.4,
+        bulletSpeed: 10,
+        jumpV: -10,
+        origJumps: 1,
+        jumps: 1,
+        health: 100,
+        origHealth: 100,
+        vx: 0,
+        vy: 0,
+        speed: 0.15,
+        maxSpeed: 3,
+        swimTimer: 500,
+        origswimTimer: 500,
+        draw: function() {
+            pushMatrix();
+            noStroke();
+            translate(300, 300);
+            fill(255, 62 + sin(frameCount) * 62, 0);
+            rect(0, 0, 30, 30);
+            popMatrix();
+        },
+        display: function() {
+            pushMatrix();
+            translate(this.x, this.y);
+            noStroke();
+            fill(255, 62 + sin(frameCount) * 62, 0);
+            rect(0, 0, this.w, this.h);
+            popMatrix();
+        }
+    },
+];
+
+var gameMap = [
+
+    [
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "------l-------CCCC-------",
+        "--------------------------",
+        "---------f-f------------pp",
+        "---@--ss-f-fssss------b-pp",
+        "bbbbbbbbbfTfbbbbbbbbbbbbbb",
+    ],
+
+    [
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "-@----------C-------------",
+        "bbb-----------------------",
+        "--------------------------",
+        "-----LLLL-----------------",
+        "--------------------------",
+        "----b---------b-----------",
+        "-----------b----------p---",
+        "-------blll---------------",
+        "-------------------b------",
+        "--------------------------",
+        "--------------------------",
+        "--------------------------",
+        "LLLLLLLLLLLLLLLLLLLLLLLLLL",
+    ],
+    [
+        "b---------------------------------b",
+        "b----------------@----------------b",
+        "b--------------bbbbbb-------------b",
+        "b-------------b-------------------b",
+        "b-------------b-------------------b",
+        "b-------------b-------------------b",
+        "b-------------b-------------------b",
+        "bwwwwwwwwwwwwwwwwwwwwbbbbbwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwawwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwwwwwwwawwwwwwwwwwwb",
+        "bwwwwwwwawwwwwwwwwwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwppwwwwwwwwwwwwwwwwb",
+        "bwwwwwwwwwwwwwwwppwwwwwwwwwwwwwwwwb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    ],
+    [
+        "-----------------------------------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "@------------#------#--------#------",
+        "bffffffffffffffffffffffffffffffffbp",
+        "-----------------------------------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "-----------------------------------",
+    ],
+    [
+        "---------------------------------pp",
+        "---------------------------------pp",
+        "-----------------------------------",
+        "----------------------------t------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "--------------------t--------------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "-----------------------------------",
+        "@-------ffffft---------------------",
+        "bbtLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+    ],
+];
+
+var customMap = [
+    {
+        title: "No idea",
+        name: "Eric",
+        map:
+    [
+        "---------------@------------------p",
+        "----------bbbbbbbbbbbbbbbbbbbbbbbbb",
+    ],
+    },
+    {
+        title: "Okay",
+        name: "Eric",
+        map:
+    [
+        "---------------@------------------p",
+        "wwwwwwwwwwbbbbbbbbbbbbbbbbbbbbbbbbb",
+    ],
+    },
+    {
+title: "",
+name: "kk",
+map: [
+"     CCCCCbbbbbbb                                                     ",
+"          bbbbbbb                                                     ",
+"    b     b                                                           ",
+"    b     b                                                           ",
+"  C bbbb  b                                                           ",
+"  C -w b bbC                                                          ",
+"  C  wbb b C                                                          ",
+"    bwb  b C                                                          ",
+"bbbbbwb@bb                                                            ",
+" b   wbbb                                                             ",
+" b   w                                                                ",
+" b   bb    CCCCCCC                                                    ",
+" b   CCCC  CCCCCCC                                                    ",
+" b     b b CCCCCCC                                                    ",
+"         bbbbbbp                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+"                                                                      ",
+],
+},
+];
+
+
+function Player(config) {
+    this.x = config.x;  this.ox = config.ox;
+    this.y = config.y;  this.oy = config.oy;
+    this.w = config.w;
+    this.h = config.h;
+    this.bullets = [];
+    this.jumpV = config.jumpV;
+    this.origJumps = config.origJumps;
+    this.jumps = config.jumps;
+    this.jump = false;
+    this.vx = config.vx;
+    this.vy = config.vy;
+    this.speed = config.speed;
+    this.canShoot = config.canShoot;
+    this.reloadSpeed = config.reloadSpeed;
+    this.reloadTimer = 0;
+    this.bulletSpeed = config.bulletSpeed;
+    this.health = config.health;
+    this.maxSpeed = config.maxSpeed;
+    this.origHealth = config.origHealth;
+    this.basicDraw = config.display;
+    this.grav = 0.5;
+    this.swimTimer = config.swimTimer;
+    this.origswimTimer = config.origswimTimer;
+}
+
+
+Player.prototype.reset = function() {
+        this.x = this.ox;
+        this.y = this.oy;
+        this.vx = 0;
+        this.vy = 0;
+        this.jumps = this.origJumps;
+        this.jump = true;
+        this.swimTimer = this.origswimTimer;
+        if (this.health <= 10) {
+        this.health = this.origHealth;
+        }
+    };
+
+var player = new Player(players[curEquipped]);
+
+function follower(x, y) {
+    this.x = x;
+    this.y = y;
+    this.ox = x;
+    this.oy = y;
+    this.w = bs;
+    this.h = bs;
+    this.vx = 0;
+    this.vy = 0;
+    this.jump = 0;
+    this.jumpV = -10;
+    this.speed = 1.3;
+    this.grav = 0.5;
+}
+
+follower.prototype.reset = function() {
+    this.x = this.ox;
+    this.y = this.oy;
+    this.vx = 0;
+    this.vy = 0;
+};
+
+var f = [];
+
+function monster(x, y) {
+    this.x = x;
+    this.y = y;
+    this.vx = 2;
+
+    this.ox = x;
+    this.oy = y;
+    this.w = bs;
+    this.h = bs;
+}
+monster.prototype.reset = function() {
+    this.x = this.ox;
+    this.y = this.oy;
+};
+
+var monsters = [];
+
+function Cannon(x, y) {
+    this.x = x;
+    this.y = y;
+    this.ox = x;
+    this.oy = y;
+    this.w = bs;
+    this.h = bs;
+    this.shootTimer = 0;
+}
+
+Cannon.prototype.reset = function() {
+    this.x = this.ox;
+    this.y = this.oy;
+};
+
+Cannon.prototype.draw = function() {
+    this.angle = atan2(this.y - player.y, this.x - player.x);
+    pushMatrix();
+    translate(this.x, this.y);
+    rotate(this.angle);
+    fill(90);
+    ellipse(0, 0, this.w, this.h);
+    rect(-27, 0, this.w, 8);
+    popMatrix();
+};
+
+var cannons = [];
+
+function Block(x, y, s) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+    this.s = s;
+    this.b = 0;
+}
+Block.prototype.draw = function() {
+    this.b += (20 - this.b)/20;
+    switch (this.s) {
+        default:
+    noStroke();
+    fill(194, 161, 119);
+    rect(this.x, this.y, this.w, this.h);
+    break;
+        case 0:
+            noStroke();
+            noFill();
+            rect(this.x, this.y, this.w, this.h);
+        break;
+    }
+    if (dist(this.x, this.y, player.x, player.y) < 300) {
+
+    }
+    for (var i in bullets) {
+        if (circleCollide(bullets[i], this)) {
+            bullets[i].x = 10000;
+            bullets.splice(i, 1);
+        }
+    }
+};
+
+function fallBlock(x, y) {
+    this.x = x;
+    this.y = y;
+    this.ox = x;
+    this.oy = y;
+    this.vy = 0;
+    this.w = bs;
+    this.h = bs;
+    this.falling = false;
+    this.grav = 0.2;
+}
+
+fallBlock.prototype.reset = function() {
+    this.x = this.ox;
+    this.y = this.oy;
+    this.falling = false;
+    this.vy = 0;
+};
+
+fallBlock.prototype.draw = function() {
+    noStroke();
+    fill(194, 161, 119);
+    rect(this.x, this.y, this.w, this.h);
+};
+
+fallBlock.prototype.update = function() {
+    if (player.x + player.w > this.x && player.x < this.x + this.w && player.y + player.h > this.y && player.y < this.y + this.h) {
+       this.falling = true;
+    }
+    if (this.falling) {
+        this.y += this.vy;
+        this.vy += this.grav;
+    }
+};
+
+var blocks = [];
+
+var fallblocks = [];
+
+function Portal(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+}
+
+var portals = [];
+
+function Water(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+    this.update = function() {
+        if (rectCollide(this, player)) {
+            player.swimTimer -= 0.35;
+            if (spaceCounts[1] <= 1) {
+                popUp = new showAchievement("swimmer!", 0);
+            }
+            player.grav = 0;
+            player.vy = 1;
+            if (keys[RIGHT]) {
+                player.vx = 1;
+            }
+            if (keys[LEFT]) {
+                player.vx = -1;
+            }
+            if (keys[UP]) {
+                player.vy = -1;
+            }
+            spaceCounts[1]++;
+        }
+        else {
+            player.grav = 0.5;
+        }
+
+    };
+    this.draw = function() {
+        fill(0, 100, 255, 150);
+        rect(this.x, this.y, this.w, this.h);
+
+    };
+}
+
+var water = [];
+
+function Lava(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+    this.update = function() {
+        if (rectCollide(this, player)) {
+            player.grav = 0;
+            player.health -= 5;
+            player.vy = 1;
+            if (keys[RIGHT]) {
+                player.vx = 1;
+            }
+            if (keys[LEFT]) {
+                player.vx = -1;
+            }
+            if (keys[UP]) {
+                player.vy = -1;
+            }
+            if (spaceCounts[0] <= 1) {
+                popUp = new showAchievement(achievements[0].name, 0);
+                achievements[0].earned = true;
+            }
+            spaceCounts[0]++;
+        }
+        else {
+            player.grav = 0.5;
+        }
+        for (var i in bullets) {
+            if (circleCollide(bullets[i], this)) {
+                bullets[i].x = 10000;
+                bullets.splice(i, 1);
+            }
+        }
+        for (var i in particles) {
+            for (var j in blocks) {
+                if (rectCollide(particles[i], blocks[j])) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+    };
+    this.draw = function() {
+        fill(255, 125, 0, 200);
+        rect(this.x, this.y, this.w, this.h);
+        if (frameCount % 10 === round(random(0, 5))) {
+            particles.push(new Particle(random(this.x,this.x+this.w-10),this.y + 5,1));
+        }
+    };
+}
+
+function Space(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+    this.draw = function() {
+        fill(255);
+        rect(this.x, this.y, this.w, this.h);
+    };
+}
+
+function Trampoline(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+    this.timer = 0;
+    this.draw = function() {
+        fill(255, 0, 255);
+        rect(this.x, this.y, this.w, this.h);
+    };
+    this.update = function() {
+        if (rectCollide(this, player)) {
+                player.vy = -17;
+                if (keys[UP]) {
+                    player.vy = -17 - this.timer;
+                    if (this.timer <= 15) {
+                    this.timer++;
+                    }
+
+                }
+                else {
+                    this.timer = 0;
+                }
+                //player.y = this.y - player.h;
+        }
+        for (var i in bullets) {
+            if (circleCollide(bullets[i], this)) {
+                bullets[i].sy *= -1;
+            }
+        }
+    };
+}
+
+function Spike(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = bs;
+    this.h = bs;
+    this.draw = function() {
+        fill(150);
+        triangle(this.x, this.y + this.h, this.x + this.w, this.y + this.h, this.x + this.w/2, this.y);
+    };
+    this.update = function() {
+        if (rectCollide(this, player)) {
+            player.vy = player.jumpV;
+            player.health -= 5;
+        }
+        for (var i in f) {
+            if (rectCollide(this, f[i])) {
+                f[i].vy = f[i].jumpV;
+            }
+        }
+    };
+}
+
+var lava = [];
+var space = [];
+var trampolines = [];
+var spikes = [];
+
+function mapFill(map) {
+    blocks = [];
+    portals = [];
+    water = [];
+    lava = [];
+    space = [];
+    f = [];
+    cannons = [];
+    monsters = [];
+    trampolines = [];
+    fallblocks = [];
+    spikes = [];
+    for (var y in map) {
+        for (var x in map[y]) {
+            var m = map[y][x];
+            if (m === "b") {
+                blocks.push(new Block(x*bs, y*bs));
+            }
+            else if (m === "i") {
+                blocks.push(new Block(x * bs, y * bs, 0));
+            }
+            else if (m === "@") {
+                player.ox = x*bs;
+                player.oy = y*bs;
+            }
+            else if (m === "p") {
+                portals.push(new Portal(x * bs, y * bs));
+            }
+            else if (m === "w") {
+                water.push(new Water(x * bs, y * bs));
+            }
+            else if (m === "L") {
+
+                lava.push(new Lava(x * bs, y * bs));
+                //space.push(new Space(x * bs, y * bs));
+            }
+            else if (m === "#") {
+                f.push(new follower(x * bs, y * bs));
+            }
+            else if (m === "C") {
+                cannons.push(new Cannon(x * bs, y * bs));
+            }
+            else if (m === "m") {
+                monsters.push(new monster(x * bs, y * bs));
+            }
+            else if (m === "a") {
+                monsters.push(new monster(x * bs, y * bs));
+                water.push(new Water(x * bs, y * bs));
+            }
+            else if (m === "t") {
+                trampolines.push(new Trampoline(x * bs, y * bs));
+            }
+            else if (m === "f") {
+                fallblocks.push(new fallBlock(x * bs, y * bs));
+            }
+            else if (m === "s") {
+                spikes.push(new Spike(x * bs, y * bs));
+            }
+        }
+    }
+    player.reset();
+    for (var i in f) {
+        f[i].reset();
+    }
+    for (var i in cannons) {
+        //cannons[i].reset();
+    }
+    for (var i in fallblocks) {
+        fallblocks[i].reset();
+    }
+}
+
+
+
+Portal.prototype.draw = function() {
+    fill(200 - sin(frameCount) * 55, 200 - cos(frameCount) * 55, 200 + sin(frameCount) * 55);
+    rect(this.x, this.y, this.w, this.h);
+    if (rectCollide(player, this)) {
+        if (screen === "playScreen") {
+            if (lvl < gameMap.length - 1) {
+        screen = "beatLevel";
+            }
+            else {
+                screen = "beatAllLevels";
+            }
+        }
+        else if (screen === "customLevelsScreen") {
+            if (clvl < customMap.length - 1) {
+            screen = "beatCustomLevel";
+            }
+            else {
+                screen = "beatAllCustomLevels";
+            }
+        }
+        else if (screen === "testScreen") {
+            screen = "beatTestLevel";
+        }
+        if (spaceCounts[2] <= 1) {
+            popUp = new showAchievement(achievements[6].name, 0);
+            achievements[6].earned = true;
+        }
+        spaceCounts[2]++;
+    }
+};
+
+Player.prototype.draw = function() {
+        this.basicDraw();
+};
+Player.prototype.collide = function(arr, vx, vy) {
+    for (var i in arr) {
+        if (rectCollide(this, arr[i])) {
+            if (vx > 0) {
+                if (arr === cannons) {
+                    //this.x = arr[i].x - this.w - arr[i].w/2;
+                }
+                else {
+                this.x = arr[i].x - this.w;
+                }
+                this.vx  = 0;
+                this.vy = constrain(this.vy, -10, 1.7);
+            }
+            else if (vx < 0) {
+                if (arr === cannons) {
+                    //this.x = arr[i].x + arr[i].w/2;
+                }
+                else {
+                this.x = arr[i].x + arr[i].w;
+                }
+
+                this.vx = 0;
+                this.vy = constrain(this.vy, -10, 1.7);
+            }
+            if (vy > 0) {
+                if (arr === fallblocks) {
+                arr[i].falling = true;
+                }
+                if (arr === cannons) {
+                    //this.y = arr[i].y - this.h - arr[i].w/2;
+                }
+                else {
+                this.y = arr[i].y - this.h;
+                }
+
+                this.vy = 0;
+                this.jump = true;
+                this.jumps = 1;
+            }
+            else if (vy < 0) {
+                if (arr === cannons) {
+                    //this.y = arr[i].y + arr[i].h/2;
+                }
+                else {
+                this.y = arr[i].y + arr[i].h;
+                }
+                this.vy = 0;
+                this.jump = false;
+            }
+
+        }
+    }
+};
+
+
+Player.prototype.update = function() {
+    if (this.jumps > 0 && (keys[UP] || keys[32]) && this.jump) {
+        if (spaceCounts[3] <= 1) {
+            popUp = new showAchievement(achievements[1].name, 0);
+            achievements[1].earned = true;
+        }
+        spaceCounts[3]++;
+        if (this.vy > this.jumpV) {
+            this.vy = this.jumpV;
+        }
+        else {
+            this.vy = constrain(this.vy + this.jumpV, this.jumpV*1.5, 100);
+        }
+        this.jumps--;
+        this.jump = false;
+    }
+    if (keys[RIGHT]) {
+        this.vx += this.speed;
+    }
+    if (keys[LEFT]) {
+        this.vx -= this.speed;
+    }
+    if (!keys[RIGHT] && !keys[LEFT]) {
+        this.vx = 0;
+    }
+    if (Math.abs(this.vx) > this.maxSpeed) {
+        if (this.vx < 0) {
+            this.vx = -this.maxSpeed;
+        }
+        else if (this.vx > 0) {
+            this.vx = this.maxSpeed;
+        }
+    }
+
+    this.x += this.vx;
+    this.collide(blocks, this.vx, 0);
+    this.collide(fallblocks, this.vx, 0);
+    this.y += this.vy;
+    this.collide(blocks, 0, this.vy);
+    this.collide(fallblocks, 0, this.vy);
+    this.vy += this.grav;
+
+    if (this.swimTimer <= 0) {
+        this.swimTimer = 0;
+        if (frameCount % 30 === 0) {
+        this.health -= 5;
+        }
+    }
+    if (this.swimTimer <= this.origswimTimer) {
+        this.swimTimer += 0.8;
+    }
+
+    if (this.health <= 0) {
+        mapFill(gameMap[lvl]);
+    }
+    if (this.y > gameMap[lvl].length*bs + 1200) {
+        this.health -= 20;
+    }
+};
+
+Player.prototype.shoot = function(arr) {
+    this.angle = atan2((cam.x + this.x) - mouseX, mouseY - (this.y + cam.y));
+    this.reloadTimer += this.reloadSpeed;
+    this.reloadTimer = constrain(this.reloadTimer, 0, 4);
+    if (this.canShoot) {
+        if (clicked && this.reloadTimer >= 4) {
+            this.reloadTimer = 0;
+            bullets.push(new Bullet(this.x, this.y, -sin(this.angle) * this.bulletSpeed, cos(this.angle) * this.bulletSpeed, "player"));
+        }
+    }
+};
+
+follower.prototype.draw = function() {
+    this.angle = atan2(player.y - this.y, this.x - player.x);
+    pushMatrix();
+    translate(this.x, this.y);
+    fill(0, 150, 0);
+    rect(0, 0, this.w, this.h);
+    fill(255);
+    ellipse(this.w/2, this.h/2, this.w - 5, this.h - 5);
+    popMatrix();
+    pushMatrix();
+    translate(this.x + this.w/2, this.y + this.h/2);
+    rotate(this.angle);
+    fill(0);
+    ellipse(2, 2, 10, 10);
+    popMatrix();
+};
+
+follower.prototype.collide = function(arr, vx, vy) {
+    for (var i in arr) {
+        if (rectCollide(this, arr[i])) {
+            if (vx > 0) {
+                this.x = arr[i].x - this.w;
+                this.vx = 0;
+            }
+            else if (vx < 0) {
+                this.x = arr[i].x + arr[i].w;
+                this.vx = 0;
+            }
+            if (vy > 0) {
+                this.y = arr[i].y - this.h;
+                this.vy = 0;
+                this.jump = true;
+            }
+            else if (vy < 0) {
+                this.y = arr[i].y + arr[i].h;
+                this.vy = 0;
+            }
+        }
+    }
+    if (rectCollide(this, player)) {
+            player.health -= 5;
+            if (vx > 0) {
+                this.x = player.x - this.w;
+                this.vx = 0;
+            }
+            else if (vx < 0) {
+                this.x = player.x + player.w;
+                this.vx = 0;
+            }
+            if (vy > 0) {
+                this.y = player.y - this.h - player.vy;
+                this.vy = 0;
+                this.jump = true;
+            }
+            else if (vy < 0) {
+                this.y = player.y + player.h;
+                this.vy = 0;
+            }
+        }
+};
+
+follower.prototype.update = function() {
+    this.angle = atan2(player.y - this.y, player.x - this.x);
+    if (dist(this.x, this.y, player.x, player.y) <= 150) {
+        this.vx = 3 * cos(this.angle);
+        if (this.jump) {
+        this.vy = constrain(this.vy + this.jumpV, this.jumpV * 1.5, 100);
+        this.jump = false;
+        }
+    }
+
+    this.x += this.vx;
+    this.collide(blocks, this.vx, 0);
+    this.collide(fallblocks, this.vx, 0);
+    //this.collide(cannons, this.vx, 0);
+    this.y += this.vy;
+    this.collide(fallblocks, 0, this.vy);
+    this.collide(blocks, 0, this.vy);
+    //this.collide(cannons, this.vy, 0);
+    this.vy += this.grav;
+    for (var i in bullets) {
+        if (circleCollide(bullets[i], this)) {
+            bullets[i].x = 10000;
+            this.x = 1000;
+            bullets.splice(i, 1);
+        }
+    }
+
+};
+
+
+Cannon.prototype.shoot = function() {
+    this.angle = atan2(player.y + player.h/2 - this.y, player.x + player.w/2 - this.x);
+    if (this.shootTimer > 50) {
+        bullets.push(new Bullet(this.x, this.y, 3 * cos(this.angle), 3 * sin(this.angle), "cannon"));
+        this.shootTimer = round(random(0, 10));
+    }
+    this.shootTimer++;
+};
+
+monster.prototype.draw = function() {
+    pushMatrix();
+    translate(this.x, this.y);
+    fill(0, 150, 60);
+    rect(0, 0, this.w, this.h, 3 * cos(frameCount) + 3);
+    popMatrix();
+};
+
+monster.prototype.collide = function(arr) {
+    for (var i in arr) {
+        if (rectCollide(this, arr[i])) {
+            this.vx *= -1;
+        }
+    }
+    if (rectCollide(this, player)) {
+        this.vx *= -1;
+        player.health -= 3;
+    }
+};
+
+monster.prototype.update = function() {
+    this.x += this.vx;
+    this.collide(blocks);
+};
+
+var start = true;
+
+function Button(x, y, w, label, nextScreen) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.label = label;
+    this.nextScreen = nextScreen;
+    this.over = function() {
+        return (dist(mouseX, mouseY, this.x, this.y) < this.w/2);
+    };
+    this.draw = function() {
+        if (this.over()) {
+            fill(245);
+            cursor(HAND);
+            if (clicked) {
+                screen = this.nextScreen;
+            }
+        }
+        else {
+            fill(255);
+        }
+        stroke(0);
+        strokeWeight(5);
+        ellipse(this.x, this.y, this.w, this.w);
+        fill(0);
+        text(this.label, this.x, this.y);
+    };
+}
+
+function toggleButton(x, y, w, h, t) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.t = t;
+    this.over = function() {
+        return (mouseX > this.x && mouseX < this.x + this.w && mouseY > this.y && mouseY < this.y + this.h);
+    };
+    this.draw = function() {
+        if (this.over()) {
+            fill(225);
+            cursor(HAND);
+            if (clicked) {
+                fill(185);
+
+                if (this.t === "On") {
+                    this.t = "Off";
+                }
+                else if (this.t === "Off") {
+                    this.t = "On";
+                }
+            }
+        }
+        else {
+            fill(245);
+        }
+        stroke(155);
+        strokeWeight(3);
+        rect(this.x, this.y, this.w, this.h, 6);
+        fill(0);
+        text(this.t, this.w/2 + this.x, this.h/2 + this.y);
+    };
+}
+
+function lvlButton(x, y, level, unlock) {
+    stroke(155);
+    strokeWeight(3);
+    if (Over(x, y, 50, 50)) {
+        fill(185);
+        cursor(HAND);
+        if (clicked) {
+            lvl = (level - 1);
+        }
+    }
+    else {
+        fill(225);
+    }
+    rect(x, y, 50, 50);
+    fill(0);
+    if (unlock) {
+    textSize(30);
+    text(level, x + 25, y + 25);
+    }
+    else if (!unlock) {
+        lock(x + 11.3, y + 16.1);
+    }
+}
+
+var buttons = [
+    new Button(300, 300, 104, "Play", "levelSelect"),
+    new Button(300, 546, 104, "Back", "mainMenu"),
+    new Button(500, 500, 104, "Next" ,"playScreen"),
+    new Button(300, 300, 104, "Next\nLevel", "playScreen"),
+    new Button(300, 450, 104, "Level\nselect", "levelSelect"),
+    new Button(35, 35, 60, "||", "pauseScreen"), // 5
+    new Button(300, 300, 104, "Resume", "playScreen"),
+    new Button(300, 450, 104, "Quit", "levelSelect"), // 7
+    new Button(100, 450, 104, "Shop", "shopScreen"),
+    new Button(500, 450, 104, "How", "instructions"), // 9
+    new Button(100, 200, 104, "Create", "createScreen"), // 10
+    new Button(35, 35, 50, "...", "optionsScreen"),
+    new Button(300, 546, 104, "Back", "createScreen"),
+    new Button(300, 450, 104, "Custom\nlevels", "customLevelsScreen"),
+    new Button(35, 35, 60, "||", "customPauseScreen"), // 14
+    new Button(300, 300, 104, "Resume", "customLevelsScreen"),
+    new Button(300, 450, 104, "Quit", "mainMenu"), // 16
+    new Button(300, 300, 104, "Next\nLevel", "customLevelsScreen"),
+    new Button(300, 450, 104, "Quit", "mainMenu"), // 18
+    new Button(300, 400, 104, "Continue", "mainMenu"),
+    new Button(300, 400, 104, "Continue", "levelSelect"),
+    new Button(500, 200, 104, "All\nachievements", "achievementsScreen"), // 21
+    new Button(100, 546, 104, "Play", "testScreen"), // 22
+    new Button(35, 35, 60, "||", "testPauseScreen"), // 23
+    new Button(300, 300, 104, "Resume", "testScreen"),
+    new Button(300, 450, 104, "Quit", "optionsScreen"), // 25
+    new Button(300, 300, 104, "Back", "optionsScreen"),
+    new Button(100, 320, 104, "Settings", "settingsScreen"),
+];
+
+var toggleButtons = [
+    new toggleButton(200, 100, 50, 50, "Off"),
+];
+
+function gameBackground() {
+    background(0, 221, 255);
+}
+
+function load() {
+    background(0);
+    if (start1) {
+        createPixel();
+        start1 = false;
+    }
+    for (var i in pixels) {
+        pixels[i].draw();
+        pixels[i].update();
+    }
+    if (timer > 720) {
+        screen = "mainMenu";
+        timer = 720;
+    }
+    timer++;
+}
+
+function mainMenu() {
+    gameBackground();
+    fill(255, 0, 0);
+    textSize(40);
+    pushMatrix();
+    translate(titleXpos, 0);
+    rotate(angles[0]);
+    scale(scales);
+    angles[0] = lerp(angles[0], Math.PI * 2, 0.1);
+    scales = lerp(scales, 1, 0.1);
+    titleXpos = lerp(titleXpos, 300, 0.1);
+    text("The land of hope", 0, 70);
+    popMatrix();
+    textSize(20);
+    fill(0);
+    pushMatrix();
+    translate(titleXpos1, 100);
+    rotate(angles[1]);
+    titleXpos1 = lerp(titleXpos1, 300, 0.1);
+    angles[1] = lerp(angles[1], Math.PI * 2, 0.025);
+    text("By ", -20, 0);
+    popMatrix();
+    pushMatrix();
+    translate(titleXpos2, 100);
+    rotate(angles[1]);
+    angles[1] = lerp(angles[1], Math.PI * 2, 0.025);
+    titleXpos2 = lerp(titleXpos2, 300, 0.03);
+    text("Kevin", 30, 0);
+    popMatrix();
+    textSize(30);
+    buttons[0].draw();
+    buttons[8].draw();
+    buttons[9].draw();
+    buttons[10].draw();
+    textSize(20);
+    buttons[13].draw();
+    buttons[27].draw();
+    textSize(13);
+    buttons[21].draw();
+}
+
+function achievementsScreen() {
+    gameBackground();
+    fill(150);
+    textSize(50);
+    text("All achievements", 300, 60);
+    pushMatrix();
+    translate(xPos[0], 0);
+    for (var i = 0; i < achievements.length; i++){
+        noStroke();
+            switch (achievements[i].difficulty) {
+                case "Very easy":
+                    fill(0, 0, 255);
+                break;
+                case "Easy":
+                    fill(0, 255,0);
+                break;
+                case "Medium":
+                    fill(255, 255, 0);
+                break;
+            }
+            rect(i * 600 + 100, 100, 400, 400);
+        textSize(30);
+        fill(0);
+            text("Name: " + achievements[i].name, i * 600 + 300, 200);
+            textSize(20);
+            if (!achievements[i].earned) {
+            text("Earned: not yet but soon!", i * 600 + 300, 250);
+            }
+            else if (achievements[i].earned) {
+                text("Earned: Indeed!", i * 600 + 300, 250);
+            }
+            text("Description: " + achievements[i].description, i * 600 + 300, 300);
+
+        }
+    popMatrix();
+    if (keys[RIGHT] && xPos[0] % -600 < -599 || keys[RIGHT] && xPos[0] % 600 < 1) {
+        moving = true;
+    }
+    if (keys[LEFT]) {
+        xPos[0] = 0;
+            moving = false;
+            whereTo = -600;
+    }
+    if (moving){
+            xPos[0] = lerp(xPos[0], whereTo, 0.2);
+        }
+        if (xPos[0] % -600 < -599){
+            moving = false;
+            if (xPos[0] - 601 > -(achievements.length) * 600){
+                whereTo = xPos[0] - 601;
+            }
+        }
+    popMatrix();
+    textSize(30);
+    buttons[1].draw();
+}
+
+function settingsScreen() {
+    gameBackground();
+    textSize(60);
+    xPos[2] = lerp(xPos[2], 300, 0.1);
+    pushMatrix();
+    translate(xPos[2], 0);
+    text("Settings", 0, 60);
+    popMatrix();
+    textSize(30);
+    fill(0);
+    text("Tips:", 100, 120);
+    if (clicked) {
+        if (Over(200, 100, 50, 50)) {
+            if (toggleButtons[0].t === "On") {
+                tipEnabled = true;
+            }
+            else if (toggleButtons[0].t === "Off") {
+                tipEnabled = false;
+            }
+        }
+    }
+    for (var i in toggleButtons) {
+        toggleButtons[i].draw();
+    }
+    textSize(30);
+    buttons[1].draw();
+}
+
+function createScreen() {
+    gameBackground();
+    //Set up the black lines
+     strokeWeight(2);
+    stroke(0, 0, 0);
+    for (var i = 30; i < 600; i += 30) {
+        line(i, 0, i, 600);
+        line(0, i, 600, i);
+    }
+
+    if (moveTimer > 10) {
+    if (keys[RIGHT] && editX > (-mapLength + 30) * 30) {
+        editX -= 30;
+        moveTimer = 0;
+    }
+    if (keys[LEFT] && editX < 0) {
+        editX += 30;
+        moveTimer = 0;
+    }
+    if (keys[UP] && editY < 0) {
+        editY += 30;
+        moveTimer = 0;
+    }
+    if (keys[DOWN] && editY < 1500) {
+        editY -= 30;
+        moveTimer = 0;
+    }
+    }
+    if (keys[32] && moveTimer > 50) {
+        moveTimer = 0;
+        println("//Copy paste this down below to tips and thanks :) \n{\ntitle: \"" + Text.title.join("") + "\",\nname: \"" + Text.name.join("") + "\",\nmap: [");
+    for (var i = 0; i < testMap.length; i++) {
+        for (var j = 0; j < testMap[i].length; j++) {
+            var s = testMap[i][j];
+            if (s === " ") {
+                saveText += " ";
+            }
+            else if (s === "b") {
+                saveText += "b";
+            }
+            else if (s === "@") {
+                saveText += "@";
+            }
+            else if (s === "p") {
+                saveText += "p";
+            }
+            else if (s === "s") {
+                saveText += "s";
+            }
+            else if (s === "L") {
+                saveText += "L";
+            }
+            else if (s === "t") {
+                saveText += "t";
+            }
+            else if (s === "#") {
+                saveText += "#";
+            }
+            else if (s === "w") {
+                saveText += "w";
+            }
+            else if (s === "i") {
+                saveText += "i";
+            }
+            else if (s === "C") {
+                saveText += "C";
+            }
+            if (spaceCounts[5] <= 1) {
+                popUp = new showAchievement(achievements[2].name, 0);
+                achievements[2].earned = true;
+            }
+            spaceCounts[5]++;
+        }
+
+       println("\"" + saveText + "\",");
+       saveText = "";
+    }
+
+    println("],\n},");
+    }
+    pushMatrix();
+    translate(editX, editY);
+    for (var i = 0; i < testMap.length; i++) {
+        for (var j = 0; j < testMap[i].length; j++) {
+            x = j * 30;
+            y = i * 30;
+            switch (testMap[i][j]) {
+                case "b":
+                    fill(194, 161, 119);
+                    rect(x, y, 30, 30);
+                break;
+                case "p":
+                    fill(200 - sin(frameCount) * 55, 200 - cos(frameCount) * 55, 200 + sin(frameCount) * 55);
+                    rect(x, y, 30, 30);
+                break;
+                case "L":
+                    fill(255, 95, 0);
+                    rect(x, y, 30, 30);
+                break;
+                case "s":
+                    fill(0);
+                    triangle(x + 3, y + 30, x + 30 / 2, y, x + 30 - 3, y + 30);
+                break;
+                case "t":
+                    fill(255, 0, 255);
+                    rect(x, y, 30, 30);
+                break;
+                case "#":
+                    fill(52, 196, 47);
+                    rect(x, y, 30, 30);
+                break;
+                case "w":
+                    fill(0, 150, 255);
+                    rect(x, y, 30, 30);
+                break;
+                case "i":
+                    fill(255);
+                    rect(x, y, 30, 30);
+                break;
+                case "C":
+                    //noStroke();
+                    pushMatrix();
+                    translate(x + 15, y + 15);
+                    rotate(atan2(mouseY - y, mouseX - x));
+                    fill(90);
+                    ellipse(0, 0, 30, 30);
+                    rectMode(CENTER);
+                    rect(17, 0, 30, 10);
+                    rectMode(CORNER);
+                    popMatrix();
+                break;
+                case "@":
+                    fill(255, 0, 0);
+                    rect(x, y, 30, 30);
+                break;
+            }
+        }
+    }
+    popMatrix();
+    x = round((-editX + mouseX - 15) / 30);
+    y = round((-editY + mouseY - 15) / 30);
+
+    if (clicked) {
+        t2 = [];
+        for (var i = 0; i < mapLength; i++) {
+            t2.push(testMap[y][i]);
+        }
+        t2.splice(x, 1, blockSelected);
+        testMap[y] = "";
+        for (var i = 0; i < t2.length; i++) {
+            testMap[y] += t2[i];
+        }
+    }
+    x = round((mouseX - 15) / 30);
+    y = round((mouseY - 15) / 30);
+    if (blockSelected === "b") {
+        fill(194, 161, 119, 200);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "p") {
+        fill(200 - Math.sin(frameCount) * 55, 200 - Math.cos(frameCount) * 55, 200 + Math.sin(frameCount) * 55, 200);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === " ") {
+        fill(0, 0, 0, 50);
+         rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "L") {
+        fill(255, 95, 0, 150);
+         rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "s") {
+        fill(0);
+        fill(0);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "t") {
+        fill(255, 0, 255, 150);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "#") {
+        fill(52, 196, 47, 150);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "w") {
+        fill(0, 150, 255, 150);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "i") {
+        fill(255, 255, 255, 150);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    if (blockSelected === "C") {
+        pushMatrix();
+            translate(round((mouseX - 15)/30) * 30 + 14, round((mouseY - 15)/30) * 30 + 15);
+            rotate(atan2(mouseY - y, mouseX - x));
+            fill(90, 90, 90, 150);
+            ellipse(0, 0, 30, 30);
+            rectMode(CENTER);
+            rect(17, 0, 30, 10);
+            rectMode(CORNER);
+        popMatrix();
+    }
+    if (blockSelected === "@") {
+        fill(255, 0, 0, 150);
+        rect(round((mouseX - 15)/30) * 30, round((mouseY - 15)/30) * 30, 30, 30);
+    }
+    moveTimer++;
+    textSize(30);
+    buttons[1].draw();
+    textSize(20);
+    fill(255, 0, 0);
+    text("Edit coordinates: " + editX + ", " + editY, 300, 50);
+    fill(0);
+    var X = round((mouseX - 15)/30) * 30;
+    var Y = round((mouseY - 15)/30) * 30;
+    text("Mouse position: " + (X - editX) + ", " + (Y - editY), 300, 80);
+    buttons[11].draw();
+}
+
+function optionsScreen() {
+    gameBackground();
+    textSize(60);
+    fill(90);
+    text("Options", 300, 60);
+    objectButton(30, 300, "b", "Block");
+    objectButton(30, 360, " ", "Eraser");
+    objectButton(90, 300, "p", "Portal");
+    objectButton(150, 300, "L", "Lava");
+    objectButton(210, 300, "w", "Water");
+    objectButton(270, 300, "C", "cannon");
+    objectButton(300, 300, "@", "player");
+    objectButton(360, 300, "t", "Trampoline");
+    textSize(30);
+    fill(245);
+    strokeWeight(3);
+    if (Over(200, 166, 208, 30)) {
+        cursor(TEXT);
+    }
+        if (clicked) {
+            if (Over(200, 166, 208, 30)) {
+        textActivated.name = true;
+            }
+            else {
+            textActivated.name = false;
+            }
+        }
+   if (textActivated.name === true) {
+       stroke(255, 0, 0);
+   }
+   else {
+       stroke(155);
+   }
+   //Your name
+    rect(200, 166, 208, 30);
+    fill(0);
+    text("Your name:", 100, 179);
+   if (Over(200, 209, 208, 30)) {
+       cursor(TEXT);
+   }
+   if (clicked) {
+       if (Over(200, 209, 208, 30)) {
+        textActivated.title = true;
+            }
+            else {
+            textActivated.title = false;
+            }
+   }
+
+   if (textActivated.title === true) {
+       stroke(255, 0, 0);
+   } else { stroke(155); }
+    //The title
+    fill(245);
+    rect(200, 209, 208, 30);
+    fill(0);
+    text("Title:", 100, 221);
+    //Join the text
+    fill(90);
+    textSize(25);
+    textAlign(LEFT, CENTER);
+    if (frameCount % 40 < 20) {
+    text(Text.name.join("") + "|", 201, 179);
+    }
+    else {
+        text(Text.name.join(""), 201, 179);
+    }
+
+    if (frameCount % 40 < 20) {
+    text(Text.title.join("") + "|", 201, 222);
+    }
+    else {
+        text(Text.title.join(""), 201, 222);
+    }
+    textAlign(CENTER, CENTER);
+    buttons[12].draw();
+    buttons[22].draw();
+}
+
+function testPauseScreen() {
+    stroke(0);
+    strokeWeight(5);
+    fill(255);
+    rect(100, 100, 400, 400);
+    textSize(20);
+    buttons[24].draw();
+    textSize(30);
+    buttons[25].draw();
+}
+
+function beatTestLevel() {
+    stroke(0);
+    strokeWeight(5);
+    fill(255);
+    rect(100, 100, 400, 400);
+    textSize(30);
+    fill(0);
+    text("Congrats! Your level\nis verified!", 300, 150);
+    buttons[26].draw();
+}
+
+function testScreen() {
+    gameBackground();
+    gameBackground();
+    var angle = 180 - atan2((cam.y + player.y) - mouseY, (cam.x + player.x) - mouseX);
+    fill(0);
+    textSize(20);
+    text("Angle from the player to mouse: " + round(angle), 300, 100);
+    cam.x = ~~(lerp(cam.x, width/2 - player.x, 0.1));
+    cam.y = ~~lerp(cam.y, height/2 - player.y, 0.1);
+    cam.x = constrain(cam.x, -1200, 0);
+    cam.y = constrain(cam.y, -1800, 200);
+    player.x = constrain(player.x, 0, mapLength * 30);
+    fill(255, 0, 0, transparency);
+    textSize(30);
+    text(Text.title.join(""), 300, 280);
+    textSize(20);
+    text("Made by: " + Text.name.join(""), 300, 320);
+    pushMatrix();
+    translate(cam.x, cam.y);
+
+    player.draw();
+    player.update();
+    player.shoot();
+    for (var i = 0; i < blocks.length; i++) {
+        blocks[i].draw();
+    }
+    for (var i in particles) {
+            particles[i].draw();
+            if (particles[i].trans <= 0) {
+                particles.splice(i, 1);
+            }
+    }
+    for (var i in portals) {
+        portals[i].draw();
+    }
+    for (var i in water) {
+        water[i].draw();
+        water[i].update();
+    }
+    for (var i in lava) {
+        //space[i].draw();
+        lava[i].draw();
+        lava[i].update();
+
+    }
+    for (var i in cannons) {
+        cannons[i].draw();
+        cannons[i].shoot();
+        if (cannons[i].y <= 0 || cannons[i].y >= 1500 || cannons[i].x <= 0) {
+            cannons.splice(i, 1);
+        }
+        for (var j in bullets) {
+            if (bullets[j].type === "player") {
+                if (circleCollide(bullets[j], cannons[i])) {
+                    cannons[i].x = 1000000;
+                }
+            }
+        }
+    }
+    for (var i in fallblocks) {
+        fallblocks[i].draw();
+        fallblocks[i].update();
+        if (player.health <= 1 || keys[82]) {
+            fallblocks[i].reset();
+        }
+    }
+    for (var i in bullets) {
+        bullets[i].draw();
+        bullets[i].update();
+        if (bullets[i].x - 5 > player.x && bullets[i].x + 5 < player.x + player.w && bullets[i].y - 5 > player.y && bullets[i].y + 5 < player.y + player.h) {
+            player.health -= 4;
+            bullets.splice(i, 1);
+        }
+        if (bullets[i].x > 100000) {
+               bullets.splice(i, 1);
+            }
+
+    }
+    for (var i in player.bullets) {
+        player.bullets[i].draw();
+        player.bullets[i].update();
+    }
+    for (var i in f) {
+        f[i].draw();
+        f[i].update();
+        if (player.health <= 0 || keys[82]) {
+            f[i].reset();
+        }
+    }
+    for (var i in monsters) {
+        monsters[i].draw();
+        monsters[i].update();
+        if (player.health <= 0 || keys[82]) {
+            monsters[i].reset();
+        }
+    }
+
+    for (var i in trampolines) {
+        trampolines[i].draw();
+        trampolines[i].update();
+    }
+
+    for (var i in spikes) {
+        spikes[i].draw();
+        spikes[i].update();
+    }
+    popMatrix();
+    if (player.health <= 0 || keys[82]) {
+        if (spaceCounts[4] <= 1) {
+            popUp = new showAchievement(achievements[3].name, 0);
+            achievements[3].earned = true;
+        }
+        for (var i in cannons) {
+            cannons[i].reset();
+        }
+        bullets.splice(0, bullets.length);
+        particles.splice(0, particles.length);
+        for (var i in f) {
+            f[i].reset();
+        }
+        for (var i in fallblocks) {
+            fallblocks[i].reset();
+        }
+        spaceCounts[4]++;
+        player.health = 0;
+        player.reset();
+        bullets.splice(0, bullets.length);
+    }
+    //Draw health bar
+    fill(255, 0, 0);
+    rectMode(CENTER);
+    noStroke();
+    fill(255, 0, 0);
+    rect(300, 50, player.origHealth * 3, 30);
+    fill(0, 255, 0);
+    rect(300, 50, player.health * 3, 30);
+    fill(0);
+    textSize(25);
+    text("Health: " + round(player.health), 300, 50);
+    rectMode(CORNER);
+    //Draw swimming bar
+    fill(0, 255, 217);
+    rectMode(CENTER);
+    if (player.swimTimer < player.origswimTimer) {
+    rect(300, 100, player.swimTimer/4, 20);
+    }
+    rectMode(CORNER);
+    transparency -= 3;
+    textSize(30);
+    buttons[23].draw();
+}
+
+function beatLevel() {
+    stroke(0);
+    strokeWeight(5);
+    fill(255);
+    rect(100, 100, 400, 400);
+    fill(0);
+    textSize(30);
+    text("Congratulations!", 300, 150);
+    textSize(20);
+    buttons[3].draw();
+    buttons[4].draw();
+}
+
+function levelSelect() {
+    gameBackground();
+    textSize(30);
+    lvlButton(100, 50, 1, unlockedLevel[0]);
+    lvlButton(200, 50, 2, unlockedLevel[1]);
+    lvlButton(300, 50, 3, unlockedLevel[2]);
+    lvlButton(400, 50, 4, unlockedLevel[3]);
+    lvlButton(100, 150, 5, unlockedLevel[4]);
+    fill(0);
+    if (unlockedLevel[lvl]) {
+    text("Level: " + (lvl + 1), 300, 420);
+    }
+    else {
+        text("Level: locked", 300, 420);
+    }
+    buttons[1].draw();
+    if (unlockedLevel[lvl]) {
+    buttons[2].draw();
+    }
+}
+
+function pauseScreen() {
+    stroke(0);
+    fill(255);
+    strokeWeight(5);
+    rect(100, 100, 400, 400);
+    fill(0);
+    textSize(30);
+    text("Game is paused", 300, 150);
+    textSize(20);
+    buttons[6].draw();
+    buttons[7].draw();
+}
+
+function shopScreen() {
+    gameBackground();
+    fill(200 - Math.sin(frameCount) * 55, 200 - Math.cos(frameCount) * 55, 200 + Math.cos(frameCount) * 55);
+    textSize(40);
+    text("S H O P", 300, 50);
+    noFill();
+    stroke(0);
+    strokeWeight(4);
+    rect(100, 100, 400, 400);
+    textSize(30);
+    fill(0);
+    text(players[curSelected].name, 300, 150);
+    textSize(20);
+    text(players[curSelected].description, 300, 200);
+    text("Price: " + players[curSelected].price, 300, 240);
+    noStroke();
+    rectMode(CENTER);
+    players[curSelected].draw();
+    rectMode(CORNER);
+    if (players[curSelected].haveBought) {
+        fill(217);
+        noStroke();
+        rect(340, 435, 150, 50);
+        fill(0);
+        text("Bought", 415, 460);
+    }
+    else {
+        if (money >= players[curSelected].price) {
+            if (Over(340, 435, 150, 50)) {
+                fill(0, 245, 0);
+                cursor(HAND);
+                if (clicked) {
+                    if (spaceCounts[6] <= 1) {
+                    popUp = new showAchievement(achievements[4].name, 0);
+                    achievements[4].earned = true;
+                    }
+
+                    spaceCounts[6]++;
+                    players[curSelected].haveBought = true;
+                    money -= players[curSelected].price;
+                }
+            }
+            else {
+            fill(0, 255, 0);
+            }
+            noStroke();
+            rect(340, 435, 150, 50);
+            fill(0);
+            text("Buy?", 340 + 75, 435 + 25);
+        }
+        else {
+            fill(255, 0, 0);
+            noStroke();
+            rect(340, 435, 150, 50);
+            if (Over(340, 435, 150, 50)) {
+                cursor("not-allowed");
+            }
+            fill(0);
+            text("Not enough\nmoney!", 340 + 75, 435 + 25);
+        }
+    }
+    if (players[curSelected].haveBought) {
+        if (curEquipped === curSelected) {
+            fill(217);
+            noStroke();
+            rect(119, 435, 150, 50);
+            fill(0);
+            text("Equipped", 119 + 75, 435 + 25);
+        } else {
+            if (Over(119, 435, 150, 50)) {
+                cursor(HAND);
+                fill(0, 245, 0);
+                if (clicked) {
+                    curEquipped = curSelected;
+                    player = new Player(players[curEquipped]);
+                }
+            }
+            else {
+            fill(0, 255, 0);
+            }
+            noStroke();
+            rect(119, 435, 150, 50);
+            fill(0);
+            text("Equip?", 119 + 75, 435 + 25);
+        }
+    }
+    if (keys[RIGHT] && shopTimer > 20 && curSelected < players.length - 1) {
+        curSelected++;
+        shopTimer = 0;
+    }
+    else if (keys[LEFT] && shopTimer > 20 && curSelected > 0) {
+        curSelected--;
+        shopTimer = 0;
+    }
+    shopTimer++;
+    textSize(30);
+    buttons[1].draw();
+
+}
+
+
+
+function instructions() {
+    gameBackground();
+    textSize(50);
+    fill(255, 0, 0);
+    text("Instructions", 300, 60);
+    textSize(20);
+    fill(0);
+    pushMatrix();
+    translate(howTrans, 0);
+    for (var i = 0; i < howMessages.length; i++){
+            text(howMessages[i], i * 600 + 300, 300);
+        }
+    popMatrix();
+    if (keys[RIGHT] && howTrans % -600 < -599 || keys[RIGHT] && howTrans % 600 < 1) {
+        moving = true;
+    }
+    if (keys[LEFT]) {
+        howTrans = 0;
+            moving = false;
+            whereTo = -600;
+    }
+    if (moving){
+            howTrans = lerp(howTrans, whereTo, 0.2);
+        }
+        if (howTrans % -600 < -599){
+            moving = false;
+            if (howTrans - 601 > -(howMessages.length) * 600){
+                whereTo = howTrans - 601;
+            }
+        }
+
+    textSize(30);
+    buttons[1].draw();
+}
+
+function customPauseScreen() {
+    strokeWeight(5);
+    stroke(0);
+    fill(255);
+    rect(100, 100, 400, 400);
+    textSize(30);
+    buttons[16].draw();
+    textSize(20);
+    buttons[15].draw();
+}
+
+function beatAllLevels() {
+    gameBackground();
+    fill(0);
+    textSize(40);
+    text("Congratulations!\nYou bet all normal levels!", 300, 50);
+    textSize(20);
+    buttons[20].draw();
+}
+
+function beatAllCustomLevels() {
+    gameBackground();
+    fill(0);
+    textSize(40);
+    text("Congratulations!\nYou bet all custom levels!", 300, 50);
+    textSize(20);
+    buttons[19].draw();
+}
+
+function beatCustomLevel() {
+    stroke(0);
+    strokeWeight(5);
+    fill(255);
+    rect(100, 100, 400, 400);
+    fill(0);
+    textSize(30);
+    text("Congratulations!", 300, 150);
+    textSize(30);
+    buttons[17].draw();
+    buttons[18].draw();
+}
+
+function customLevelsScreen() {
+    gameBackground();
+    cam.x = ~~(lerp(cam.x, width/2 - player.x, 0.1));
+    cam.y = ~~lerp(cam.y, height/2 - player.y, 0.1);
+    cam.x = constrain(cam.x, -1200, customMap[lvl].length * -1);
+    cam.y = constrain(cam.y, -1800, 200);
+    player.x = constrain(player.x, 0, 10000);
+    fill(255, 0, 0, transparency);
+    textSize(30);
+    text(customMap[clvl].title, 300, 280);
+    textSize(20);
+    text("Made by: " + customMap[clvl].name, 300, 320);
+    pushMatrix();
+    translate(cam.x, cam.y);
+    player.draw();
+    player.update();
+    player.shoot();
+    for (var i in blocks) {
+        blocks[i].draw();
+    }
+    for (var i in portals) {
+        portals[i].draw();
+    }
+    for (var i in water) {
+        water[i].draw();
+        water[i].update();
+    }
+    for (var i in trampolines) {
+        trampolines[i].draw();
+        trampolines[i].update();
+    }
+    for (var i in bullets) {
+        bullets[i].draw();
+        bullets[i].update();
+        if (bullets[i].y > 1500 || bullets[i].x < 0 || bullets[i].x > 10000 || bullets[i].y < 0) {
+            bullets.splice(i, 1);
+        }
+        if (bullets[i].x - 5 > player.x && bullets[i].x + 5 < player.x + player.w && bullets[i].y - 5 > player.y && bullets[i].y + 5 < player.y + player.h) {
+            player.health -= 4;
+            bullets[i].x = 10000;
+            bullets.splice(i, 1);
+        }
+
+    }
+    for (var i in cannons) {
+        cannons[i].draw();
+        cannons[i].shoot();
+        for (var j in bullets) {
+            if (bullets[j].type === "player") {
+                if (circleCollide(bullets[j], cannons[i])) {
+                    cannons[i].y = 10000;
+                }
+            }
+        }
+    }
+    if (player.health <= 0 || keys[82]) {
+        if (spaceCounts[4] <= 1) {
+            popUp = new showAchievement(achievements[3].name, 0);
+            achievements[3].earned = true;
+        }
+        spaceCounts[4]++;
+        player.health = 0;
+        player.reset();
+        bullets.splice(0, bullets.length);
+    }
+    popMatrix();
+    //Draw health bar
+    fill(255, 0, 0);
+    rectMode(CENTER);
+    noStroke();
+    fill(255, 0, 0);
+    rect(300, 50, player.origHealth * 3, 30);
+    fill(0, 255, 0);
+    rect(300, 50, player.health * 3, 30);
+    fill(0);
+    textSize(25);
+    text("Health: " + round(player.health), 300, 50);
+    rectMode(CORNER);
+    //Draw swimming bar
+    fill(0, 255, 217);
+    rectMode(CENTER);
+    if (player.swimTimer < player.origswimTimer) {
+    rect(300, 100, player.swimTimer/4, 20);
+    }
+    rectMode(CORNER);
+    transparency -= 3;
+    textSize(30);
+    buttons[14].draw();
+}
+
+function playScreen() {
+    gameBackground();
+    cam.x = ~~(lerp(cam.x, width/2 - player.x, 0.1));
+    cam.y = ~~lerp(cam.y, height/2 - player.y, 0.1);
+    cam.x = constrain(cam.x, -1200, 0);
+    cam.y = constrain(cam.y, -1800, 200);
+    player.x = constrain(player.x, 0, 10000);
+    var angle = Math.PI - atan2((cam.y + player.y) - mouseY, (cam.x + player.x) - mouseX);
+    stroke(255, 0, 0);
+    strokeWeight(2);
+    //Uncomment this if you want, it will show the triangle between the player and the mouse, very useful for shooting
+    /*
+    line(player.x + cam.x, player.y + cam.y, mouseX, mouseY);
+    line(player.x + cam.x, player.y + cam.y, mouseX, player.y + cam.y);
+    line(mouseX, player.y + cam.y, mouseX, mouseY);
+    */
+    fill(0);
+    textSize(20);
+    text("Angle from the player to mouse: " + Math.round((angle * 180) / PI), 300, 100);
+    fill(255, 255, 0, transparency);
+    textSize(20);
+    if (tipEnabled) {
+    text(tip, 300, 150);
+    transparency -= 1.5;
+    }
+    pushMatrix();
+    translate(cam.x, cam.y);
+    player.draw();
+    player.update();
+    player.shoot();
+    for (var i = 0; i < blocks.length; i++) {
+        blocks[i].draw();
+    }
+    for (var i in particles) {
+            particles[i].draw();
+            if (particles[i].trans <= 0) {
+                particles.splice(i, 1);
+            }
+    }
+    for (var i in portals) {
+        portals[i].draw();
+    }
+    for (var i in water) {
+        water[i].draw();
+        water[i].update();
+    }
+    for (var i in lava) {
+        //space[i].draw();
+        lava[i].draw();
+        lava[i].update();
+
+    }
+    for (var i in spaceCounts) {
+        if (spaceCounts[i] >= 20) {
+            spaceCounts[i] = 20;
+        }
+    }
+    for (var i in cannons) {
+        cannons[i].draw();
+        cannons[i].shoot();
+        if (cannons[i].y <= 0 || cannons[i].y >= 1500 || cannons[i].x <= 0) {
+            cannons.splice(i, 1);
+        }
+        for (var j in bullets) {
+            if (bullets[j].type === "player") {
+                if (circleCollide(bullets[j], cannons[i])) {
+                    cannons[i].x = 10000;
+                }
+            }
+        }
+    }
+    for (var i in fallblocks) {
+        fallblocks[i].draw();
+        fallblocks[i].update();
+        if (player.health <= 1 || keys[82]) {
+            fallblocks[i].reset();
+        }
+    }
+    for (var i in bullets) {
+        bullets[i].draw();
+        bullets[i].update();
+        if (bullets[i].x - 5 > player.x && bullets[i].x + 5 < player.x + player.w && bullets[i].y - 5 > player.y && bullets[i].y + 5 < player.y + player.h) {
+            player.health -= 4;
+            bullets.splice(i, 1);
+        }
+
+    }
+    for (var i in player.bullets) {
+        player.bullets[i].draw();
+        player.bullets[i].update();
+    }
+    for (var i in f) {
+        f[i].draw();
+        f[i].update();
+        if (player.health <= 0 || keys[82]) {
+            f[i].reset();
+        }
+    }
+    for (var i in monsters) {
+        monsters[i].draw();
+        monsters[i].update();
+        if (player.health <= 0 || keys[82]) {
+            monsters[i].reset();
+        }
+    }
+
+    for (var i in trampolines) {
+        trampolines[i].draw();
+        trampolines[i].update();
+    }
+
+    for (var i in spikes) {
+        spikes[i].draw();
+        spikes[i].update();
+    }
+    popMatrix();
+    if (player.health <= 0 || keys[82]) {
+        if (spaceCounts[4] <= 1) {
+            popUp = new showAchievement(achievements[3].name, 0);
+            achievements[3].earned = true;
+        }
+        for (var i in cannons) {
+            cannons[i].reset();
+        }
+        bullets.splice(0, bullets.length);
+        particles.splice(0, particles.length);
+        for (var i in f) {
+            f[i].reset();
+        }
+        for (var i in fallblocks) {
+            fallblocks[i].reset();
+        }
+        spaceCounts[4]++;
+        player.health = 0;
+        player.reset();
+        bullets.splice(0, bullets.length);
+    }
+    //Draw health bar
+    fill(255, 0, 0);
+    rectMode(CENTER);
+    noStroke();
+    fill(255, 0, 0);
+    rect(300, 50, player.origHealth * 3, 30);
+    fill(0, 255, 0);
+    rect(300, 50, player.health * 3, 30);
+    fill(0);
+    textSize(25);
+    text("Health: " + round(player.health), 300, 50);
+    rectMode(CORNER);
+    //Draw swimming bar
+    fill(0, 255, 217);
+    rectMode(CENTER);
+    if (player.swimTimer < player.origswimTimer) {
+    rect(300, 100, player.swimTimer/4, 20);
+    }
+    rectMode(CORNER);
+    textSize(30);
+    buttons[5].draw();
+}
+
+function Game() {
+    try {
+    cursor(ARROW);
+    textAlign(CENTER, CENTER);
+    textFont(createFont("Verdana Bold"));
+    ellipseMode(CENTER);
+    switch (screen) {
+        case "load":
+            load();
+        break;
+        case "mainMenu":
+            mainMenu();
+        break;
+        case "playScreen":
+            playScreen();
+        break;
+        case "achievementsScreen":
+            achievementsScreen();
+        break;
+        case "levelSelect":
+            levelSelect();
+        break;
+        case "beatLevel":
+            beatLevel();
+        break;
+        case "pauseScreen":
+            pauseScreen();
+        break;
+        case "shopScreen":
+            shopScreen();
+        break;
+        case "instructions":
+            instructions();
+        break;
+        case "createScreen":
+            createScreen();
+        break;
+        case "optionsScreen":
+            optionsScreen();
+        break;
+        case "customLevelsScreen":
+            customLevelsScreen();
+        break;
+        case "customPauseScreen":
+            customPauseScreen();
+        break;
+        case "beatCustomLevel":
+            beatCustomLevel();
+        break;
+        case "beatAllCustomLevels":
+            beatAllCustomLevels();
+        break;
+        case "beatAllLevels":
+            beatAllLevels();
+        break;
+        case "testScreen":
+            testScreen();
+        break;
+        case "testPauseScreen":
+            testPauseScreen();
+        break;
+        case "beatTestLevel":
+            beatTestLevel();
+        break;
+        case "settingsScreen":
+            settingsScreen();
+        break;
+    }
+    if (screen === "beatLevel") {
+        transparency = 255;
+        tip = tips[floor(random(tips.length))];
+    }
+    popUp.draw();
+    clicked = false;
+    }
+    catch(e) {
+       // println(e);
+    }
+}
+
+mousePressed = function() {
+    if (mouseButton === LEFT) {
+    clicked = true;
+    if (screen === "mainMenu") {
+        if (buttons[13].over()) {
+            mapFill(customMap[clvl].map);
+            transparency = 255;
+        }
+    }
+    if (screen === "achievementsScreen") {
+        if (buttons[1].over()) {
+            moving = false;
+        }
+    }
+    if (screen === "settingsScreen") {
+        if (buttons[1].over()) {
+            xPos[2] = 0;
+        }
+        if (toggleButtons[0].over()) {
+            if (toggleButtons[0].t === "On") {
+                tipEnabled = true;
+            }
+            else if (toggleButtons[0].t === "Off") {
+                tipEnabled = false;
+            }
+        }
+    }
+    if (screen === "levelSelect") {
+    if (buttons[2].over()) {
+        mapFill(gameMap[lvl]);
+    }
+    if (buttons[1].over()) {
+        transparency = 255;
+    }
+    }
+    if (screen === "beatLevel") {
+    if (buttons[3].over()) {
+        lvl++;
+        player.reset();
+        bullets.splice(0, bullets.length);
+        particles.splice(0, particles.length);
+        mapFill(gameMap[lvl]);
+    }
+    if (buttons[4].over()) {
+        unlockedLevel[lvl + 1] = true;
+        bullets.splice(0, bullets.length);
+        particles.splice(0, particles.length);
+    }
+    else if (buttons[3].over()) {
+        unlockedLevel[lvl] = true;
+    }
+    }
+    if (screen === "beatCustomLevel") {
+        if (buttons[17].over()) {
+            clvl++;
+            player.reset();
+            mapFill(customMap[clvl].map);
+            transparency = 255;
+        }
+        if (buttons[18].over()) {
+            clvl++;
+        }
+    }
+    if (screen === "pauseScreen") {
+        if (buttons[7].over()) {
+            player.reset();
+            mapFill(gameMap[lvl]);
+            transparency = 255;
+        }
+    }
+    if (screen === "optionsScreen") {
+        if (buttons[22].over()) {
+            transparency = 255;
+            player.reset();
+            mapFill(testMap);
+        }
+    }
+    if (screen === "customLevelsScreen") {
+        if (buttons[14].over()) {
+            transparency = 255;
+        }
+    }
+    if (screen === "customPauseScreen") {
+        if (buttons[16].over()) {
+            player.reset();
+            mapFill(customMap[lvl].map);
+        }
+    }
+    if (screen === "beatAllCustomLevels") {
+        if (buttons[19].over()) {
+            player.reset();
+            clvl = 0;
+            bullets.splice(0, bullets.length);
+            particles.splice(0, particles.length);
+            mapFill(customMap[lvl].map);
+        }
+    }
+    }
+    else if (mouseButton === RIGHT) {
+        if (screen === "createScreen") {
+        if (buttons[11].over()) {
+            screen = "optionsScreen";
+        }
+        }
+    }
+};
+
+keyPressed = function() {
+    keys[keyCode] = true;
+};
+
+keyReleased = function() {
+    keys[keyCode] = false;
+};
+
+keyTyped = function() {
+    if (screen === "optionsScreen") {
+        if (textActivated.name) {
+    if (key.code !== BACKSPACE && Text.name.length < 20) {
+        Text.name.push(key);
+    }
+    if (key.code === BACKSPACE) {
+        Text.name.pop();
+    }
+        }
+        if (textActivated.title) {
+            if (key.code !== BACKSPACE && Text.title.length < 20) {
+        Text.title.push(key);
+    }
+    if (key.code === BACKSPACE) {
+        Text.title.pop();
+    }
+        }
+    }
+    if (textActivated.username) {
+    if (key.code !== BACKSPACE && Text.username.length < 8) {
+        Text.username.push(key);
+    }
+    if (key.code === BACKSPACE) {
+        Text.username.pop();
+    }
+        }
+
+
+};
+
+draw = function() {
+    Game();
+};
+    }};
+
+    // Get the canvas that Processing-js will use
+    var canvas = document.getElementById("mycanvas");
+    // Pass the function sketchProc (defined in myCode.js) to Processing's constructor.
+    var processingInstance = new Processing(canvas, sketchProc);
+ </script>
+
+</html>
